@@ -1,0 +1,14 @@
+# Deferred work notes + session handoff — kept local, not committed
+TODO.md
+HANDOFF.md
+*-HANDOFF.md
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Local router state + hook audit log (created per-run in consuming projects, never here)
+.claude/router-state.md
+.claude/router-hook.log

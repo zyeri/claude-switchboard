@@ -1,0 +1,13 @@
+{
+  "name": "claude-switchboard",
+  "owner": {
+    "name": "zyeri"
+  },
+  "plugins": [
+    {
+      "name": "claude-switchboard",
+      "source": "./",
+      "description": "Per-step model & effort routing for turning a spec+plan into code. A decision protocol, not a proxy."
+    }
+  ]
+}
