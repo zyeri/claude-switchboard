@@ -13,6 +13,8 @@ Route each plan step to the cheapest model + effort that will still do it right.
 
 **Honesty about control:** inline, this skill cannot change its own session model — that is `/model`, the user's alone. So inline routing is **advisory**: the echo tag says what a step *deserves* and the user switches. The exception is **effort**, which is self-actuated via thinking budget. The one place a model is chosen **mechanically** is the `model` parameter on a subagent dispatch.
 
+A **ceiling** inherits this limit: inline, it cannot bind the model axis (a below-session-rung cap can't lower a model that's already running), so an inline ceiling really only governs **effort-cap + gate-lock + parking load-bearing over-ceiling steps + the model picked for a subagent dispatch**. It is *not* a per-token model-cost cap while running inline — that only exists on the subagent-dispatch axis, where it's mechanically enforced (see Enforcement level below).
+
 ## When to use
 
 - Executing a spec+plan into code, step by step (inline or subagent-driven).
@@ -115,7 +117,7 @@ Flips suggest → auto, bounded by a ceiling the user sets before leaving.
 - **Dependents of a parked/blocked step → BLOCKED:** a step that needs a parked step's output is logged `BLOCKED [depends on <step>]` and queued — even if it would otherwise sit under the ceiling. Attempt only steps whose dependencies are satisfied.
 - **Route log:** append every decision (format below). **Auto-reverts** to attended on the user's next message; re-arm each session.
 - **`$`-budget is advisory only** — nothing in the harness meters cumulative spend. Say so plainly; never imply a hard dollar cap.
-- **Enforcement level:** on arming unattended, state whether the ceiling is **hard-enforced** (the `enforce_ceiling` PreToolUse hook + `uv` are active — it denies over-ceiling / gated / unspecified-model subagent dispatches) or **soft** (protocol honoring only, e.g. `uv` missing). Never let the user assume a hard cap they don't have.
+- **Enforcement level:** on arming unattended, state whether the ceiling is **hard-enforced** on the subagent-dispatch axis only — it denies over-ceiling / gated / unspecified-model `Task`/`Agent` calls; inline model/effort stays advisory regardless (see Honesty about control). Hard requires **both** `uv` present **and** the `enforce_ceiling` PreToolUse hook actually **loaded this session** — `uv` alone is not enough to call it hard. Confirm the hook is loaded with `/hooks` (look for the `claude-switchboard` row); if `/hooks` reports unavailable (**Remote Control sessions block it**), the load state is **unverified** — say so plainly rather than assuming either way, and fall back to disk/config evidence (plugin enabled, `hooks/hooks.json` present) as a weaker signal. Never let the user assume a hard cap they don't have.
 
 ## Router state file — `.claude/router-state.md`
 
@@ -170,5 +172,6 @@ Use `PARKED` or `BLOCKED [depends on <step>]` in place of `<role>·<effort>` whe
 - Unattended and a **load-bearing** step exceeds the ceiling → **park** it, do not clamp-and-attempt.
 - Treating a `$` budget as enforced → it is **advisory**; nothing meters spend.
 - Claiming you switched the inline session model → you cannot; that is `/model`. You can only self-actuate **effort** inline and recommend a switch.
+- Calling a ceiling "hard" on `uv` presence alone → hard requires the `enforce_ceiling` hook to be **loaded this session**, checked via `/hooks`. If `/hooks` is unavailable (Remote Control), say the load state is unverified rather than guessing.
 - `armed: false` (route off) → do **not** route; emit the disarmed breadcrumb and execute normally. `route on` re-arms at any time, from any state.
 - A step depends on a parked step → log it `BLOCKED`, do not attempt it just because it fits under the ceiling.
